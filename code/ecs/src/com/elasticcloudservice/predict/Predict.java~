@@ -1,0 +1,77 @@
+package com.elasticcloudservice.predict;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.elasticcloudservice.predict.funs.*;
+import com.elasticcloudservice.predict.base.*;
+import com.elasticcloudservice.predict.gga.*;
+
+
+public class Predict {
+
+	public static String[] predictVm(String[] ecsContent, String[] inputContent) {
+
+	List<String> history = new ArrayList<String>();
+
+		for (int i = 1; i < ecsContent.length; i++) {
+
+			if (ecsContent[i].contains("\t")
+					&& ecsContent[i].split("\t").length == 3) {
+
+				String[] array = ecsContent[i].split("\t");
+				String uuid = array[0];
+				String flavorName = array[1];
+				String createTime = array[2];
+
+				history.add(uuid + " " + flavorName + " " + createTime);
+			}
+		}
+
+        InputMsg input = new InputMsg(inputContent,ecsContent);
+		Map<Flavor,Map<String,Integer>> orgDataWithZeros = Pretreatment.timesInOneDayWithZeros(history, input);
+		
+		
+
+		//Filter.filte(orgDataWithZeros);    
+		  
+
+		Map<Flavor,Double> average = Average.getSimpleAverage(orgDataWithZeros);
+
+		//Map<Flavor,Integer> lastNDays = LastNdays.getResult(orgDataWithZeros, input, 1.5);//作为一个不变的预测结果评估遗传算法
+		// Map<Flavor,Double> rate = new LinkedHashMap<>();
+		// for(Flavor f : average.keySet()){
+		// 	rate.put(f, lastNDays.get(f)/average.get(f));
+		// }
+        // Filter.filte(orgDataWithZeros, average);//zy 1 异常点处理
+		// average = Average.getSimpleAverage(orgDataWithZeros);//zy 2 再次平均
+
+		Filter.filte2(orgDataWithZeros, average);//hj 1 异常点处理
+		// average = Average.getSimpleAverage(orgDataWithZeros);//hj 2 再次平均
+
+		//Format.setAvgForTest(average, 1.42);
+
+		//Map<Flavor,Integer> predictResult = lastNDays;
+		
+		//Map<Flavor,Integer> predictResult = Average.avgAdjust(average, rate, input, 30.0);
+
+		/***************Holt-Winters******************************/
+		double alpha = 0.2;
+        double beta = 0.2;
+        double gamma = 0.2;
+        int s = 7;
+        Map<Flavor,Integer> predictResult = HoltWinters.getPredict(orgDataWithZeros, input, alpha, beta, gamma,s);
+		/*********************************************************/
+		//Adjust.adjustPrdResult(predictResult, 1.5);
+        //Map<Flavor,Integer> predictResult = Average.avgAdjust(average, input.getDays(), input, 2.4);//平均数不加阈值滤波2.25倍最高70
+        DNA assignresult = Solution.solution(predictResult,input);										//L1用例单个可以拿到16-17分，前三个用例可以拿到54分
+        String[] result = OutputFormat.getResultv3(predictResult, assignresult.getServerList(),input);	//用例复杂后表现较差，最后一个用例分数偏低
+        return result;																					//4.22 加随机数试试
+	}
+
+}
