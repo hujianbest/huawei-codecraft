@@ -72,8 +72,8 @@ public class Predict {
         Filter.newfilte(orgDataWithZeros, LtMap);
 		// // do predict
 		/*************************************** */
-		Map<Flavor,List<Integer>> Sum7day = SumIn7day.getSumIn7day(orgDataWithZeros);
-		Map<Flavor,Integer> predictResult = HoltWinters.getPredictFromSum(Sum7day, input, alpha, beta, gamma, s);
+		//Map<Flavor,List<Integer>> Sum7day = SumIn7day.getSumIn7day(orgDataWithZeros);
+		//Map<Flavor,Integer> predictResult = HoltWinters.getPredictFromSum(Sum7day, input, alpha, beta, gamma, s);
 
 		/****************************************** */
 		// Map<Flavor,Integer> predictResult = Adjust.adjustPrdResult(LtMap, input);
@@ -81,9 +81,9 @@ public class Predict {
 		/*********************************************************/
 		// Adjust.adjustPrdResult(predictResult, 2.0);
 		
-		// Map<Flavor,Double> average = Average.getSimpleAverage(orgDataWithZeros);
+		 Map<Flavor,Double> average = Average.getSimpleAverage(orgDataWithZeros);
 		// Map<Flavor,Integer> predictResult = Average.newAvgAdjust(average,input);
-        // Map<Flavor,Integer> predictResult = Average.avgAdjust(average, input.getDays(), input, 2.7);//平均数不加阈值滤波2.25倍最高70
+         Map<Flavor,Integer> predictResult = Average.avgAdjust(average, input.getDays(), input, 4.5);//平均数不加阈值滤波2.25倍最高70
         DNA assignresult = Solution.solution(predictResult,input);										//L1用例单个可以拿到16-17分，前三个用例可以拿到54分
         String[] result = OutputFormat.getResultv3(predictResult, assignresult.getServerList(),input);	//用例复杂后表现较差，最后一个用例分数偏低
         return result;																					//4.22 加随机数试试

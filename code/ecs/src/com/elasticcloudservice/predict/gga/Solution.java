@@ -41,10 +41,10 @@ public class Solution{
         int numOfServerstd = input.getNumOfServerstds();
         //int numOfServerstd = 2;//只采用通用型
         List<ServerStd> serverstds = input.getServerstds();
-        int groupsize = 200;
+        int groupsize = 230;
         double ratec = 0.8;
         double ratem = 0.2;
-        int generation = 30;
+        int generation = 40;
 
         Evolution evolution = new Evolution(VMdata, numOfServerstd,serverstds, serveramonut, groupsize, ratec, ratem, generation,cpuneed,ramneed);
         //System.err.println("遗传算法�?�?");
